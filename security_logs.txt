@@ -1,0 +1,3 @@
+[2026-04-23 05:12:30] STSTUS: ALLOWED | PAYLOAD: https://mysite.com | TYPE: N/A
+[2026-04-23 05:13:21] STSTUS: BLOCKED | PAYLOAD: admin' OR '1'='1 | TYPE: SQL Injection
+[2026-04-23 05:16:08] STSTUS: BLOCKED | PAYLOAD: "<script>alert(1)</script>" | TYPE: XSS (Script Attack)
