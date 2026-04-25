@@ -1,27 +1,28 @@
+from flask import Flask, request
 import re
-from datetime import datetime
-RULES = {
-  "SQL Injection":r"('|\-\-|OR|SELECT|DROP|UNION)",
-  "XSS (Script Attack)": r"(<script>|alert\(|javascript:|<|>)",
-  "Directory Traversal": r"(\.\./|etc/passwd)"
-}
-def log_event(status, payload, attack_type="N/A"):
-    with open("security_logs.txt", "a") as f:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_entry = f"[{timestamp}] STSTUS: {status} | PAYLOAD: {payload} | TYPE: {attack_type}\n"
-        f.write(log_entry)
 
+app = Flask(__name__)
+
+# Detection Logic
 def inspect_request(payload):
-  print(f"\n[INFO]Inspecting Request:{payload}")
-  for attack_type, pattern in RULES.items():
-     if re.search(pattern, payload, re.IGNORECASE):
-        print(f"[ALERT] !!! {attack_type} DETECTED !!!")
-        print("[ACTION] Request is BLOCKED by SENTINEL SHIELD.")
-        log_event("BLOCKED", payload, attack_type)
-        return
-  print("[SUCCESS] Request is CLEAN.. Access Granted.")
-  log_event("ALLOWED", payload)
-print("--- SentinelShield Web Protection System---")
-test_input = input("Enter an URL or Request Body to test:")
-inspect_request(test_input)
+    patterns = {
+        "SQL Injection": r"('|\"|--|#|UNION|SELECT|OR 1=1)",
+        "XSS": r"(<script>|alert\(|onerror=)",
+        "Directory Traversal": r"(\.\.\/|\/etc\/passwd)"
+    }
+    for attack_type, pattern in patterns.items():
+        if re.search(pattern, payload, re.IGNORECASE):
+            return f"BLOCKED: {attack_type} detected!"
+    return "ALLOWED: Request is clean."
 
+@app.route('/')
+def home():
+    # URL parameters check
+    query = request.args.get('test', '')
+    if query:
+        result = inspect_request(query)
+        return f"<h1>SentinelShield Analysis</h1><p>Payload: {query}</p><h2>Result: {result}</h2>"
+    return "<h1>SentinelShield is LIVE</h1><p>Add <b>?test=your_payload</b> to the URL to test.</p>"
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=10000)
